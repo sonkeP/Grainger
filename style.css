@@ -13,45 +13,24 @@ nav {
     text-align: center;
 }
 
-/* Dashboard Container Layout */
-.dashboard-container {
+/* Main Container Layout */
+.main-container {
     display: flex;
-    justify-content: space-around;
-    padding: 20px;
+    height: calc(100vh - 60px); /* Adjust based on your navbar height */
 }
 
-/* Real-Time Info Section */
-.real-time-info {
-    width: 45%;
+/* Sidebar Styles */
+.sidebar {
+    width: 200px;
     background-color: #f5f5f5;
-    padding: 15px;
-    border-radius: 8px;
-    height: 600px;
-    overflow-y: scroll;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
-#realTimeFeed {
-    background: #fff;
-    padding: 10px;
-    height: 90%;
-    overflow-y: scroll;
-}
-
-/* Live Heatmap Section */
-.live-updates {
-    width: 45%;
-    padding: 15px;
-}
-
-#map {
-    height: 500px;
-    width: 100%;
-    border-radius: 8px;
-}
-
-button {
+.sidebar button {
     margin-bottom: 10px;
-    padding: 10px 20px;
+    padding: 10px;
     background-color: #28a745;
     color: white;
     border: none;
@@ -59,6 +38,24 @@ button {
     border-radius: 5px;
 }
 
-button:hover {
+.sidebar button:hover {
     background-color: #218838;
+}
+
+/* Dashboard Container Layout */
+.dashboard-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Live Heatmap Section */
+.live-updates {
+    width: 100%;
+}
+
+#map {
+    height: 500px;
+    width: 100%;
+    border-radius: 8px;
 }

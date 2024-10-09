@@ -1,94 +1,143 @@
-// Initialize map centered on the US
-var map = L.map('map').setView([37.8, -96], 4); // US view
+// Ensure the script runs after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map centered on the Atlantic Ocean (for hurricanes)
+    var map = L.map('map').setView([20, -60], 4); // Adjust the center based on where hurricanes are expected
 
-// Add base tile layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+    // Add base tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-// Sample data for disaster locations (earthquakes and floods)
-var disasterData = [
-    [37.78, -122.42, 0.7], // San Francisco (earthquake)
-    [34.05, -118.24, 0.9], // Los Angeles (earthquake)
-    [40.73, -73.93, 0.6],  // New York (flood)
-    [29.76, -95.37, 0.8],  // Houston (flood)
-];
+    // Initialize an empty heatmap layer
+    var heatLayer = L.heatLayer([], {
+        radius: 30,   // Increase radius for better visibility
+        blur: 25,     // Increase blur to smoothen the heatmap
+        maxZoom: 8,   // Adjust based on map zoom level
+        gradient: {    // Define a gradient for different risk levels
+            0.0: 'green',   // Low Risk
+            0.5: 'yellow',  // Moderate Risk
+            1.0: 'red'      // High Risk
+        }
+    }).addTo(map);
 
-// Add heatmap layer
-var heatLayer = L.heatLayer(disasterData, {
-    radius: 20,
-    blur: 15,
-    maxZoom: 10,
-    max: 1.0
-}).addTo(map);
-
-// Add markers to specify exact disaster locations
-disasterData.forEach(function (point) {
-    var lat = point[0];
-    var lng = point[1];
-    var intensity = point[2];
-
-    // Add a marker for each disaster location
-    L.marker([lat, lng]).addTo(map)
-        .bindPopup('Disaster location<br>Intensity: ' + intensity)
-        .openPopup();
-});
-
-// Function to update earthquake data from USGS Earthquake API
-function fetchEarthquakeData() {
-    return fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson')
-        .then(response => response.json())
-        .then(data => {
-            // Parse geojson data for earthquakes
-            return data.features.map(feature => [
-                feature.geometry.coordinates[1], // Latitude
-                feature.geometry.coordinates[0], // Longitude
-                feature.properties.mag / 10      // Intensity scaled down
-            ]);
-        });
-}
-
-// Function to update flood data (hypothetical API, replace with real flood data source)
-function fetchFloodData() {
-    // Example: Replace this URL with a real flood data API endpoint
-    return fetch('https://api.example.com/floods')
-        .then(response => response.json())
-        .then(data => {
-            // Parse the flood data
-            return data.features.map(feature => [
-                feature.geometry.coordinates[1], // Latitude
-                feature.geometry.coordinates[0], // Longitude
-                feature.properties.severity / 10  // Flood severity scaled down
-            ]);
-        });
-}
-
-// Function to combine earthquake and flood data and update heatmap
-function updateDisasterData() {
-    console.log('Updating disaster data...');
-
-    // Fetch both earthquake and flood data
-    Promise.all([fetchEarthquakeData(), fetchFloodData()])
-        .then(results => {
-            // Combine earthquake and flood data into one array
-            const combinedData = results[0].concat(results[1]);
-
-            // Update heatmap with combined data
-            heatLayer.setLatLngs(combinedData);
-
-            // Update map with disaster markers
-            combinedData.forEach(function (point) {
-                var lat = point[0];
-                var lng = point[1];
-                var intensity = point[2];
-
-                // Add or update a marker for each disaster location
-                L.marker([lat, lng]).addTo(map)
-                    .bindPopup('Disaster location<br>Intensity: ' + intensity)
-                    .openPopup();
+    // Function to fetch earthquake data from USGS Earthquake API
+    function fetchEarthquakeData() {
+        return fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson')
+            .then(response => response.json())
+            .then(data => {
+                return data.features.map(feature => ({
+                    lat: feature.geometry.coordinates[1],
+                    lng: feature.geometry.coordinates[0],
+                    intensity: feature.properties.mag,
+                    place: feature.properties.place,
+                    depth: feature.geometry.coordinates[2] // Adding depth information
+                }));
             });
-        });
-}
+    }
 
-// Trigger real-time updates when the button is clicked
-document.getElementById('liveUpdatesButton').addEventListener('click', updateDisasterData);
+    // Function to fetch hurricane data from NOAA API
+    function fetchHurricaneData() {
+        return fetch('https://www.nhc.noaa.gov/CurrentStorms.json') // Example NOAA API URL
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                return data.activeStorms.map(storm => ({
+                    lat: parseFloat(storm.latitude),
+                    lng: parseFloat(storm.longitude),
+                    intensity: storm.windSpeed, // Use wind speed directly
+                    name: storm.name // Add storm name
+                }));
+            });
+    }
+
+    // Function to determine risk level based on depth
+    function getRiskLevel(depth) {
+        if (depth < 30) return "High Risk";
+        if (depth >= 30 && depth <= 70) return "Moderate Risk";
+        return "Low Risk";
+    }
+
+    // Function to determine heatmap intensity based on depth
+    function getIntensityForHeatmap(depth) {
+        if (depth < 30) return 1.0; // High Risk
+        if (depth >= 30 && depth <= 70) return 0.5; // Moderate Risk
+        return 0.0; // Low Risk
+    }
+
+    // Function to update earthquake data and refresh the map
+    function updateEarthquakeData() {
+        console.log('Updating earthquake data...');
+        fetchEarthquakeData()
+            .then(earthquakes => {
+                if (!earthquakes || earthquakes.length === 0) {
+                    console.log('No earthquakes found.');
+                    return;
+                }
+
+                // Update heatmap
+                heatLayer.setLatLngs(earthquakes.map(eq => [eq.lat, eq.lng, getIntensityForHeatmap(eq.depth)]));
+
+                // Clear existing markers
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // Add markers for earthquakes with popups
+                earthquakes.forEach(eq => {
+                    L.marker([eq.lat, eq.lng])
+                        .addTo(map)
+                        .bindPopup(`Magnitude: ${eq.intensity} <br> Depth: ${eq.depth} km <br> Risk Level: ${getRiskLevel(eq.depth)} <br> Location: ${eq.place}`);
+                });
+            })
+            .catch(error => {
+                console.error('Error updating earthquake data:', error);
+            });
+    }
+
+    // Function to update hurricane heatmap data
+    function updateHurricaneHeatmap() {
+        console.log('Updating hurricane heatmap data...');
+        fetchHurricaneData()
+            .then(hurricanes => {
+                if (!hurricanes || hurricanes.length === 0) {
+                    console.log('No hurricanes found.');
+                    return;
+                }
+
+                // Update heatmap
+                heatLayer.setLatLngs(hurricanes.map(h => [h.lat, h.lng, h.intensity / 100]));
+
+                // Clear existing markers
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // Add markers for hurricanes with popups
+                hurricanes.forEach(h => {
+                    L.marker([h.lat, h.lng])
+                        .addTo(map)
+                        .bindPopup(`Hurricane: ${h.name} <br> Wind Speed: ${h.intensity} mph`);
+                });
+            })
+            .catch(error => {
+                console.error('Error updating hurricane heatmap:', error);
+            });
+    }
+
+    // Trigger earthquake updates when the Real-Time Updates button is clicked
+    document.getElementById('liveUpdatesButton').addEventListener('click', updateEarthquakeData);
+
+    // Trigger heatmap updates when the Heatmaps button is clicked
+    document.getElementById('heatmapsBtn').addEventListener('click', updateHurricaneHeatmap);
+
+    // Initial update for earthquake data
+    updateEarthquakeData();
+});

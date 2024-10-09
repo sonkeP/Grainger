@@ -3,84 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Disaster Relief Dashboard</title>
+    <title>Disaster Management Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-        }
-        .navbar {
-            background-color: #333;
-            width: 20%;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            z-index: 1000;
-        }
-        .navbar a {
-            display: block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-        .navbar a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .main {
-            margin-left: 20%;
-            padding: 20px;
-            width: 80%;
-        }
-        #map {
-            height: 600px;
-        }
-        #liveUpdatesButton {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        #liveUpdatesButton:hover {
-            background-color: #45a049;
-        }
-        .news-headline {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-left: 5px solid #2196F3;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="navbar">
-    <a href="#realTimeUpdates">Real-Time Updates</a>
-    <a href="#heatmaps">Heatmaps</a>
-    <a href="#resourceAllocation">Resource Allocation</a>
-    <a href="#ngoCoordination">NGO Coordination</a>
-</div>
-
-<div class="main">
-    <div id="realTimeUpdates">
-        <h2>Real-Time Updates</h2>
-        <div class="news-headline">Latest disaster news headline will appear here.</div>
-        <button id="liveUpdatesButton">Live Updates</button>
+    <nav>
+        <h1>Disaster Management Dashboard</h1>
+    </nav>
+    <div class="main-container">
+        <div class="sidebar">
+            <button id="liveUpdatesButton">Real-Time Updates</button>
+            <button id="heatmapsBtn"> Heatmaps</button>
+            <button id="resourceAllocationBtn">Resource Allocation</button>
+            <button id="ngoCoordinationBtn">NGO Coordination</button>
+        </div>
+        <div class="dashboard-container">
+            <div class="live-updates">
+                <h2>Live Heatmap</h2>
+                <div id="map" style="height: 500px;"></div> <!-- Added height for map -->
+            </div>
+        </div>
     </div>
-
-    <div id="heatmaps">
-        <h2>Heatmaps</h2>
-        <div id="map"></div>
-    </div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-<script src="script.js"></script> <!-- Link to the external JavaScript file -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
