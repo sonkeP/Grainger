@@ -36,6 +36,7 @@ nav {
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    transition: background-color 0.3s; /* Add transition for smooth hover effect */
 }
 
 .sidebar button:hover {
@@ -55,7 +56,19 @@ nav {
 }
 
 #map {
-    height: 500px;
+    height: 500px; /* Fixed height for the map */
     width: 100%;
     border-radius: 8px;
+}
+
+/* Optional: Add styling for alerts */
+.real-time-updates {
+    margin-top: 20px; /* Add space above real-time updates */
+}
+.alert {
+    padding: 10px;
+    background-color: #e9ecef;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px; /* Spacing between alerts */
 }
