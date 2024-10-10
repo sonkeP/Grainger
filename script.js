@@ -140,4 +140,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial update for earthquake data
     updateEarthquakeData();
+
+    function fetchRealTimeUpdates() {
+        fetch('http://localhost:5000/api/real-time-data')
+            .then(response => response.json())
+            .then(data => updateAlerts(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Update real-time alerts on the page
+    function updateAlerts(data) {
+        const alertsSection = document.querySelector('.real-time-updates');
+        alertsSection.innerHTML = ''; // Clear previous alerts
+
+        data.articles.forEach(article => {
+            const alertElement = document.createElement('div');
+            alertElement.className = 'alert';
+            alertElement.innerText = `${article.title} - ${article.source.name}`;
+            console.log(alertElement.innerText);
+            alertsSection.appendChild(alertElement);
+        });
+    }
+
+    // Trigger real-time updates when the Live Updates button is clicked
+    document.getElementById('liveUpdatesButton').addEventListener('click', fetchRealTimeUpdates);
+
+    // Fetch real-time updates every 60 seconds (optional)
+    setInterval(fetchRealTimeUpdates, 60000);
+
+    // Initial fetch for real-time updates (if needed)
+    fetchRealTimeUpdates();
 });
